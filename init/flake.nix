@@ -15,6 +15,7 @@
         hosts = [
           "pawhost-next"
           "test-vm"
+          "test-vm-julie"
         ];
       in {
         nixosConfigurations =
