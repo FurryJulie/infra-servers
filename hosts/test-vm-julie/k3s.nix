@@ -181,21 +181,8 @@ in
           };
           cm = {
             url = "https://argocd.fluuffftest.fpsource.info";
-            "admin.enabled" = false;
+            "admin.enabled" = true;
             "dex.config" = ''
-              connectors:
-              - config:
-                  issuer: https://accounts.google.com
-                  # These depend on `argocd-secret.yaml`
-                  # being manually applied to the cluster.
-                  clientID: $oidc.google.clientID
-                  clientSecret: $oidc.google.clientSecret
-                  insecureSkipVerify: true
-                  userIDKey: email
-                  userNameKey: email
-                type: oidc
-                id: google
-                name: Google
               '';
             # Backup config for use in case of Dex troubles.
             # "oidc.config" = ''
@@ -221,7 +208,7 @@ in
               '';
           };
           secret = {
-            createSecret = false;
+            createSecret = true;
           };
         };
         server = {
