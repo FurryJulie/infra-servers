@@ -45,115 +45,47 @@ in
 
       values = {
         additionalArguments = [
+          "--api.dashboard=true"
+          "--log.level=DEBUG"
+          "--accesslog=true"
+          #"--entrypoints.web.address=:80"
+          #"--entrypoints.web.http.redirections.entrypoint.to=websecure"
+          #"--entryPoints.web.http.redirections.entrypoint.scheme=https"
+          #"--entrypoints.websecure.address=:443"
+          #"--entrypoints.websecure.asDefault=true"
         ];
         ingressRoute = {
           dashboard = {
             enabled = true;
             matchRule = "Host(`traefik.fluuffftest.fpsource.info`)";
-            entryPoints = ["web"];
+            entryPoints = ["websecure"];
             middlewares = [{
-              name = "google-oauth";
-              namespace = "traefik";
+              name = "dashboard-auth";
             }];
           };
         };
         extraObjects = [
           {
+            apiVersion = "v1";
+            kind = "Secret";
+            metadata = {
+              name = "dashboard-auth-secret";
+            };
+            type = "kubernetes.io/basic-auth";
+            stringData = {
+              username = "admin";
+              password = "P@ssw0rd";
+            };
+          }
+          {
             apiVersion = "traefik.io/v1alpha1";
             kind = "Middleware";
             metadata = {
-              name = "google-oauth";
-              namespace = "traefik";
+              name = "dashboard-auth";
             };
             spec = {
-              forwardAuth = {
-                address = "http://google-oauth.traefik";
-                trustForwardHeader = true;
-                authResponseHeaders = [
-                  "X-Forwarded-User"
-                ];
-              };
-            };
-          }
-          {
-            apiVersion = "apps/v1";
-            kind = "Deployment";
-            metadata = {
-              name = "google-oauth";
-              namespace = "traefik";
-            };
-            spec = {
-              replicas = 1;
-              selector = {
-                matchLabels = {
-                  app = "google-oauth";
-                };
-              };
-              template = {
-                metadata = {
-                  labels = {
-                    app = "google-oauth";
-                  };
-                };
-                spec = {
-                  containers = [{
-                    name = "traefik-forward-auth";
-                    image = "thomseddon/traefik-forward-auth:2";
-                    env = [
-                      # These depend on `traefik-secret.yaml`
-                      # being manually applied to the cluster.
-                      {
-                        name = "PROVIDERS_GOOGLE_CLIENT_ID";
-                        valueFrom = {
-                          secretKeyRef = {
-                            name = "auth";
-                            key = "clientID";
-                          };
-                        };
-                      }
-                      {
-                        name = "PROVIDERS_GOOGLE_CLIENT_SECRET";
-                        valueFrom = {
-                          secretKeyRef = {
-                            name = "auth";
-                            key = "clientSecret";
-                          };
-                        };
-                      }
-                      {
-                        name = "SECRET";
-                        valueFrom = {
-                          secretKeyRef = {
-                            name = "auth";
-                            key = "cookieSecret";
-                          };
-                        };
-                      }
-                      {
-                        name = "INSECURE_COOKIE";
-                        value = "true";
-                      }
-                    ];
-                  }];
-                };
-              };
-            };
-          }
-          {
-            apiVersion = "v1";
-            kind = "Service";
-            metadata = {
-              name = "google-oauth";
-              namespace = "traefik";
-            };
-            spec = {
-              ports = [{
-                name = "http";
-                targetPort = 4181;
-                port = 80;
-              }];
-              selector = {
-                app = "google-oauth";
+              basicAuth = {
+                secret = "dashboard-auth-secret";
               };
             };
           }
@@ -184,15 +116,6 @@ in
             "admin.enabled" = true;
             "dex.config" = ''
               '';
-            # Backup config for use in case of Dex troubles.
-            # "oidc.config" = ''
-            #   name: Google
-            #   issuer: https://accounts.google.com
-            #   clientID: $oidc.google.clientID
-            #   clientSecret: $oidc.google.clientSecret
-            #   requestedScopes: ["openid", "profile", "email"]
-            #   '';
-
           };
           rbac = {
             "policy.csv" = ''
