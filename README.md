@@ -9,4 +9,4 @@ This repo is used to manage the NixOS servers maintained by Fluufff IT.
 - Sync a specific server on the local machine:
   See the [manually syncing](./docs/manual-sync.md) docs.
 - Add a new server, or recommission an existing one:  
-  See the docs in [the init folder](./init).
+  See the docs in [the init folder](./init/README.md).

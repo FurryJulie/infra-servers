@@ -20,6 +20,7 @@
 
     # Allows running: nix run .#colmena
     packages.x86_64-linux.colmena = colmena.packages.x86_64-linux.colmena;
+    packages.aarch64-darwin.colmena = colmena.packages.aarch64-darwin.colmena;
 
     # Optional dev shell: nix develop
     devShells.x86_64-linux.default =

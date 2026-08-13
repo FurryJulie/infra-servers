@@ -15,10 +15,15 @@ in
     kubernetes-helm
   ];
 
+  networking.firewall.allowedTCPPorts = [ 6443 ];
+
   services.k3s = {
     enable = true;
     role = "server";
     nodeName = name;
+    extraFlags = [
+      "--tls-san=${config.deployment.targetHost}"
+    ];
 
     # # $ zfs create -o mountpoint=/var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.zfs <zpool name>/containerd
     # extraFlags = [
@@ -38,8 +43,8 @@ in
     autoDeployCharts.traefik2 = {
       repo = "https://traefik.github.io/charts";
       name = "traefik";
-      version = "37.4.0";
-      hash = "sha256-BIGagu9qqQ7ijloBJp5bRBQUnVhcO8k4tmr6ZNx4pZU=";
+      version = "39.0.5";
+      hash = "sha256-LWl7boE85UG4Is7POi/2/LlzImDS+z56lzc4iqOb8vU=";
       targetNamespace = "traefik";
       createNamespace = true;
 
@@ -51,6 +56,19 @@ in
           "--certificatesresolvers.letsencrypt.acme.httpChallenge.entryPoint=web"
           "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
         ];
+        ports = {
+          web = {
+            http = {
+              redirections = {
+                entryPoint = {
+                  to = "websecure";
+                  scheme = "https";
+                  permanent = false;
+                };
+              };
+            };
+          };
+        };
         ingressRoute = {
           dashboard = {
             enabled = true;
@@ -216,6 +234,7 @@ in
             "policy.csv" = ''
               p, role:operator, applications, sync, *, allow
               p, role:operator, applications, get, *, allow
+              p, role:operator, applications, action/*, default/*, allow
               p, role:operator, applicationsets, get, *, allow
               p, role:operator, projects, get, *, allow
               p, role:operator, clusters, get, *, allow
@@ -224,9 +243,13 @@ in
 
               g, it@fluufff.org, role:admin
               g, juravenator@fluufff.org, role:admin
-              g, proko@fluufff.org, role:admin
+              g, proko@fluufff.org, role:operator
               g, niki@fluufff.org, role:operator
               g, julieiraes@fluufff.org, role:operator
+              g, quezler@fluufff.org, role:operator
+              g, annelies@fluufff.org, role:operator
+              g, snuggly.ghost@fluufff.org, role:operator
+              g, jorden@fluufff.org, role:operator
               '';
           };
           secret = {
@@ -262,7 +285,8 @@ in
 
               syncPolicy = {
                 automated = {
-                  prune = true;
+                  enabled = false;
+                  prune = false;
                   selfHeal = true;
                 };
               };

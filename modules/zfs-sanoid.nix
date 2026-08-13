@@ -11,6 +11,7 @@
     };
     before = ["sanoid.service"];
   };
+  # zfs list -r -o 'name,used,k8s:namespace,k8s:name' zroot/data/k8s-pv
   systemd.services.zfs-pvc-labels = {
     script = ''
       #!/usr/bin/env bash
@@ -63,10 +64,15 @@
     interval = "*-*-* *:00:00";
     commands = {
       "zroot/data" = {
-        target = "pawhost-test@192.168.193.19:speedy1/fluufff/test.pawhost.fluufff.org/data";
+        target = "pawhost-test@192.168.193.92:hot-1/replicas/test.pawhost.fluufff.org/data";
         recursive = true;
       };
     };
+    commonArgs = [
+      "--no-sync-snap"
+      "--sshport=666"
+      "--sendoptions=p"
+    ];
     sshKey = /data/syncoid/syncoid.key;
     service = {
       serviceConfig = {
@@ -79,7 +85,7 @@
 
   services.openssh = {
     knownHosts = {
-      "192.168.193.19".publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBJQzfnDaiVk1fyA+FA6LyKf5Y4N/AsFs+Lc3q8rIwxt";
+      "192.168.193.92".publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBJQzfnDaiVk1fyA+FA6LyKf5Y4N/AsFs+Lc3q8rIwxt";
     };
   };
 }
